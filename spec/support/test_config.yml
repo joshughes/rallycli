@@ -1,0 +1,3 @@
+rally_options:
+  project:   'FooBarProject'
+  workspace: 'YOLO'
