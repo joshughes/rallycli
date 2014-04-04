@@ -3,9 +3,11 @@ require 'active_support/core_ext'
 require 'rally_api'
 require 'yaml'
 require 'pry'
-require_relative 'rally/task'
+require_relative 'task'
+require_relative 'story'
+
 module Rally
-  class RallyCli
+  class Cli
     def initialize(options={})
       options.reverse_merge!({
         username: ENV['RALLY_USERNAME'],
@@ -13,32 +15,32 @@ module Rally
         base_url: ENV['RALLY_BASE_URL']
         })
 
-      @rally_config = get_config_from_file[:rally_options] || Hash.new
-      @rally_config.merge!(options)
+      @config = get_config_from_file[:rally_options] || Hash.new
+      @config.merge!(options)
 
       headers = RallyAPI::CustomHttpHeader.new()
       headers.name    = "rally_cli"
       headers.version = "0.1.0"
 
-      @rally_config[:headers]    = headers
+      @config[:headers]    = headers
 
       rally_login
     end
 
     def user_name
-      @rally_config[:username]
+      @config[:username]
     end
 
     def password
-      @rally_config[:password]
+      @config[:password]
     end
 
     def project
-      @rally_config[:project]
+      @config[:project]
     end
 
     def workspace
-      @rally_config[:workspace]
+      @config[:workspace]
     end
 
     def current_task=(task)
@@ -51,20 +53,15 @@ module Rally
     end
 
     def current_story
-      query = RallyAPI::RallyQuery.new
-      query.type         = 'story'
-      query.fetch        = 'ObjectID'
-      query.project      = {"_ref" => @rally.rally_default_project.ref } if @rally_config[:project]
-      query.query_string = "(FormattedID = US2167)"
-      @rally.find(query).first
+      @story ||= Task.load("current_story")
     end
 
     def current_user
       query = RallyAPI::RallyQuery.new
       query.type         = 'user'
       query.fetch        = 'ObjectID'
-      query.project      = {"_ref" => @rally.rally_default_project.ref } if @rally_config[:project]
-      query.query_string = "(Name = #{@rally_config[:username]})"
+      query.project      = {"_ref" => default_project_ref } if @config[:project]
+      query.query_string = "(Name = #{@config[:username]})"
       @rally.find(query).first
     end
 
@@ -72,24 +69,40 @@ module Rally
       query = RallyAPI::RallyQuery.new
       query.type         = 'task'
       query.fetch        = 'FormattedID'
-      query.project      = {"_ref" => @rally.rally_default_project.ref } if @rally_config[:project]
-      query.query_string = "(Owner.Name = #{@rally_config[:username]})"
+      query.project      = {"_ref" => @rally.rally_default_project.ref } if @config[:project]
+      query.query_string = "((Owner.Name = #{@config[:username]}) AND (State != Completed))"
       @rally.find(query)
     end
 
-    def create_task(task, story = current_story)
-      Task.create(task, current_story, current_user, self)
+    def create_task(task, story=current_story)
+      Task.create(task, story, current_user, self)
+    end
+
+    def create_story(story)
+      Story.create(story,current_user,self)
+    end
+
+    def project_stories
+      Story.stories_for_project(self)
+    end
+
+    def default_project_ref
+      @rally.rally_default_project.ref
     end
 
     def rally_api
       @rally
     end
 
+    def config
+      @config
+    end
+
 
     private
 
     def rally_login
-      @rally ||= RallyAPI::RallyRestJson.new(@rally_config)
+      @rally ||= RallyAPI::RallyRestJson.new(@config)
     end
 
     def get_config_from_file

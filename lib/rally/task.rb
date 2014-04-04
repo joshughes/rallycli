@@ -1,12 +1,13 @@
 module Rally
   class Task
+    TASK_METHODS = %w(ready blocked work_product blocked_reason estimate actuals to_do notes)
 
     def self.create(task, story, user, rally_cli)
       rally_api = rally_cli.rally_api
       obj = {}
       obj["Name"]        = task[:name]
       obj["Description"] = task[:description]
-      obj["WorkProduct"] = story.ObjectID
+      obj["WorkProduct"] = story.object_id
       obj["Owner"]       = user.ObjectID
       self.new(rally_api.create("task", obj))
     end
@@ -49,11 +50,26 @@ module Rally
       @actual_hours = ((Time.current - @start_time) / 1.hour).round
     end
 
+    def object_id
+      @rally_task.ObjectID
+    end
 
     def to_yaml_properties
       variables = instance_variables
       variables.delete(:@rally_task)
       variables
+    end
+
+    TASK_METHODS.each do | method |
+      define_method(method) do 
+        rally_task.send(method.camelize)
+      end
+      define_method(method+'=') do | arg |
+        field_updates = {method.camelize => arg}
+        rally_task.update(field_updates)
+        rally_task = rally_task.read
+      end
+
     end
 
   end

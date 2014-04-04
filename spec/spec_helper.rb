@@ -1,12 +1,12 @@
 require 'bundler/setup'
 require 'timecop'
 require "test_construct/rspec_integration"
-require_relative 'helpers/task_helper'
+require_relative 'helpers/test_helper'
 Bundler.setup
 
 
-require 'rally_cli' # and any other gems you need
+require_relative '../lib/rally/cli' # and any other gems you need
 
 RSpec.configure do |config|
-  config.include TaskHelper
+  config.include TestHelper
 end
