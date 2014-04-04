@@ -2,7 +2,7 @@ require 'spec_helper'
 
 describe 'RallyCli' do
 
-  let(:rally) {RallyCli.new}
+  let(:rally) {Rally::RallyCli.new}
 
   before(:each) do
     allow_any_instance_of(RallyCli).to receive(:rally_login).and_return(true)
@@ -19,6 +19,9 @@ describe 'RallyCli' do
   end
 
   describe 'task management' do
+    it 'writes current_task to disk' do
+      
+    end
     it 'allows a user to start work on a task' do
       expected_time = ''
       Timecop.freeze(Time.current - 2.hours) do
@@ -31,6 +34,10 @@ describe 'RallyCli' do
     it 'allows a user to update a task estimate' do
       rally.current_task.estimate = 8
       expect(rally.current_task.estimate).to eq(8)
+    end
+
+    it 'saves the current_task to disk' do
+
     end
 
     it 'allows a user to get details on the current task' do

@@ -24,7 +24,6 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "rspec"
   spec.add_development_dependency "rspec-mocks"
   spec.add_development_dependency "rake"
-  spec.add_development_dependency "highline"
   spec.add_development_dependency "simplecov"
-  spec.add_development_dependency 'vcr', '~> 2.9.0'
+  spec.add_development_dependency "test_construct"
 end

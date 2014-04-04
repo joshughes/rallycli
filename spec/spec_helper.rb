@@ -1,7 +1,9 @@
 require 'bundler/setup'
 require 'timecop'
+require "test_construct/rspec_integration"
 require_relative 'helpers/task_helper'
 Bundler.setup
+
 
 require 'rally_cli' # and any other gems you need
 
