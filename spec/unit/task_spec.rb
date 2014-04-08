@@ -5,12 +5,12 @@ describe 'RallyCli Task' do
   let(:rally) {Rally::Cli.new}
 
   let(:rally_task) do 
-    OpenStruct.new({
+    task = OpenStruct.new({
       Name:        'Test123', 
       Description: 'FooBar', 
-      FormattedID: 'Heyoo',
-      update:       true, 
-      read:         true})
+      FormattedID: 'Heyoo'})
+    task.read= task
+    task
   end
 
   let(:task) {Rally::Task.new(rally_task)}
@@ -30,12 +30,12 @@ describe 'RallyCli Task' do
     end
 
     it 'load', test_construct: true do
-      Rally::Task.stub(:find_rally_task).and_return(rally_task)
+      Rally::Base.stub(:find_by_formattedID).and_return(rally_task)
       Rally::Task.save('current_task',task)
       loaded_task = Rally::Task.load('current_task', rally)
       expect(loaded_task.name).to         eq('Test123')
       expect(loaded_task.description).to  eq('FooBar')
-      expect(loaded_task.formatted_id).to eq('Heyoo')
+      expect(loaded_task.formattedID).to  eq('Heyoo')
     end
   end
 
@@ -67,7 +67,7 @@ describe 'RallyCli Task' do
       expect(task.to_yaml_properties).not_to include(:@rally_task)
     end
 
-    let(:methods) {%i(ready blocked blocked_reason estimate actuals to_do notes )}
+    let(:methods) {%i(name description ready blocked blocked_reason estimate actuals to_do notes )}
     it 'has methods to update a task' do
       methods.each do | method |
         expect(Rally::Task.method_defined? method).to be_true
