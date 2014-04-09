@@ -42,7 +42,7 @@ describe 'RallyCli Task' do
 
   describe 'task methods' do
 
-    it 'start' do
+    it 'start', test_construct: true do
       expected_time = ''
       Timecop.freeze(Time.current - 2.hours) do
         expected_time = Time.current
@@ -51,7 +51,7 @@ describe 'RallyCli Task' do
       expect(task.start_time).to eq(expected_time)
     end
 
-    it 'end' do
+    it 'end', test_construct: true do
       rally_task.stub(:update).and_return(true)
       expected_time = ''
       Timecop.freeze(Time.current - 2.hours) do

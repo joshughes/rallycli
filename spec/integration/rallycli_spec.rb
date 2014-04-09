@@ -45,12 +45,12 @@ describe 'RallyCli' do
     end
 
     it 'can create a new user story' do
-      expect { rally.create_story(test_story) }.to change{rally.project_stories.count}.by(1)
+      expect { rally.create_story(test_story) }.to change{rally.stories.count}.by(1)
     end
     it 'can give the user open stories from the current iteration' do
     end
     it 'can give the user open stories for the current project' do
-      expect(rally.project_stories.count).to be > 0
+      expect(rally.stories.count).to be > 0
     end
 
   end
