@@ -1,7 +1,11 @@
 require 'fileutils'
 module Rally
   class Base
-      RALLY_METHODS = %w(name description ready actual blocked work_product blocked_reason to_do notes)
+     
+      EDITABLE_TEXT_FIELDS = %w(name description blocked_reason notes)
+      EDITABLE_BOOLEAN_FIELDS = %w(ready blocked)
+      EDITABLE_OBJECT_RELATIONS = []
+
       def self.save(name,task)
         unless File.directory?('.rally_cli')
           FileUtils.mkdir_p('.rally_cli')
@@ -9,6 +13,10 @@ module Rally
         File.open(".rally_cli/#{name}.yaml", "w") do |file|
           file.puts YAML::dump(task)
         end
+      end
+
+      def self.rally_methods
+        EDITABLE_TEXT_FIELDS + EDITABLE_BOOLEAN_FIELDS + EDITABLE_OBJECT_RELATIONS
       end
 
       def self.load(file_name, rally_cli)
@@ -33,8 +41,8 @@ module Rally
         @rally_object   = rally_object
         @formattedID    = rally_object.FormattedID
         @objectID       = rally_object.ObjectID
-        define_rally_methods self.class::RALLY_METHODS
-        load(object)
+        define_rally_methods self.class.rally_methods
+        load(object) if object
       end
 
       def to_yaml_properties

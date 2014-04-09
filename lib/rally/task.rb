@@ -1,7 +1,8 @@
 require_relative 'base'
 module Rally
   class Task < Base
-    RALLY_METHODS.concat %w(estimate actuals)
+    EDITABLE_TEXT_FIELDS.concat %w(estimate actuals to_do)
+    EDITABLE_OBJECT_RELATIONS.concat %w(work_product)
 
     def self.create(task, story, user, rally_cli)
       rally_api = rally_cli.rally_api
@@ -32,10 +33,8 @@ module Rally
 
     def load(object)
       super
-      if(object)
-        @start_time   = object.start_time
-        @work_hours   = object.work_hours
-      end
+      @start_time   = object.start_time
+      @work_hours   = object.work_hours
     end
 
     private 

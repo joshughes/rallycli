@@ -86,9 +86,10 @@ module Rally
       Story.create(story,current_user,self)
     end
 
-    def project_stories
+    def stories(options={})
       Story.stories_for_project(self)
     end
+    alias_method :work_products, :stories
 
     def default_project_ref
       @rally.rally_default_project.ref

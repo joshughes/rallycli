@@ -62,20 +62,13 @@ command :set_task do |c|
   c.example 'description', 'command example'
   c.option '--some-switch', 'Some switch that does something'
   c.action do |args, options|
-    task_groups = @rally_cli.tasks(options).each_slice(10).to_a
-    task_groups.cycle do |tasks|
-      system("clear")
-      @high_line.choose do | menu |
-        menu.prompt = "Please choose the task you wish to work on."
-        menu.shell  = false
-
-        tasks.each do |task|
-          menu.choice("#{task.formattedID}: #{task.description}") { @rally_cli.current_task = task; exit }
-        end
-        menu.hidden(:next, "Next page of tasks") { next }
-        menu.hidden(:quit, "Exit program.") { exit }
-      end
-    end
+    menu = {
+      options:       @rally_cli.tasks(options),
+      prompt:        "Please choose the task you wish to work on.",
+      option_text:   proc { |option| "#{option.formattedID}: #{option.description}"},
+      option_action: proc { |option| @rally_cli.current_task = option; exit }
+    }  
+    menu_select(menu)
   end
 end
 
@@ -85,19 +78,13 @@ command :set_story do |c|
   c.example 'description', 'command example'
   c.option '--some-switch', 'Some switch that does something'
   c.action do |args, options|
-    story_groups = @rally_cli.stories(options).each_slice(10).to_a
-    story_groups.cycle do |stories|
-      @high_line.choose do | menu |
-        menu.prompt = "Please choose the story you wish to work on."
-        menu.shell  = false
-
-        stories.each do |story|
-          menu.choice("#{story.formattedID}: #{stroy.description}") { @rally_cli.current_story = story; exit }
-        end
-        menu.hidden(:next, "Next page of stories") { next }
-        menu.hidden(:quit, "Exit program.") { exit }
-      end
-    end
+    menu = {
+      options:       @rally_cli.stories(options),
+      prompt:        "Please choose the story you wish to work on.",
+      option_text:   proc { |option| "#{option.formattedID}: #{option.description}"},
+      option_action: proc { |option| @rally_cli.current_story = option; exit}
+    }
+    menu_select(menu)
   end
 end
 
@@ -107,7 +94,7 @@ command :edit_task do |c|
   c.example 'description', 'command example'
   c.option '--some-switch', 'Some switch that does something'
   c.action do |args, options|
-    @task.description = ask_editor(@task.description)
+    edit_object(@task, args[0])
   end
 end
 
@@ -121,4 +108,47 @@ command :edit_story do |c|
     # Do something or c.when_called Rally_cli::Commands::Edit_story
   end
 end
+
+
+private 
+
+
+def edit_object(object, edit_field, options=nil)
+  if(object.class::EDITABLE_TEXT_FIELDS.include?(edit_field))
+    current_value = object.send(edit_field)
+    object.send(edit_field+"=", ask_editor(current_value))
+  elsif(object.class::EDITABLE_BOOLEAN_FIELDS.include?(edit_field))
+    object.send(edit_field+"=",@high_line.agree("Is #{object.formattedID} #{edit_field}?"))
+  elsif(object.class::EDITABLE_OBJECT_RELATIONS.include?(edit_field))
+    menu ={
+      options:       @rally_cli.send("#{edit_field.pluralize}",options),
+      prompt:        "Please choose the new #{edit_field} for #{object.class} #{object.formattedID}",
+      option_text:   proc { |option| "#{option.formattedID}: #{option.name}"},
+      option_action: proc { |option| object.send("#{edit_field}=",option.objectID); exit}
+    }
+    menu_select(menu)
+  else
+    say("#{edit_field.capitalize} is not editable for #{object.class} #{object.formattedID}")
+  end
+end
+
+def menu_select(menu_hash)
+  groups = menu_hash[:options].each_slice(10).to_a
+  groups.cycle do |options|
+    system("clear")
+    @high_line.choose do | menu |
+      menu.prompt = menu_hash[:prompt] 
+      menu.prompt += "\n next: for next 10 results" if groups.length > 1
+      menu.prompt += "\n quit: to exit"
+      menu.shell  = false
+
+      options.each do |option|
+        menu.choice(menu_hash[:option_text].call(option)) { menu_hash[:option_action].call(option) }
+      end
+      menu.hidden(:next, "Next page") { next }
+      menu.hidden(:quit, "Exit program.") { exit }
+    end
+  end
+end
+
 

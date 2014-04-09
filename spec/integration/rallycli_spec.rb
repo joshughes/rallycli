@@ -33,8 +33,7 @@ describe 'RallyCli' do
     end 
 
     it 'retrives a list of tasks assigned to the user' do
-      a = rally.create_task(test_task, test_story_object)
-      binding.pry
+      rally.create_task(test_task, test_story_object)
       expect(rally.tasks.count).to be > 0
     end
   end

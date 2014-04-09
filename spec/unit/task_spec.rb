@@ -8,7 +8,8 @@ describe 'RallyCli Task' do
     task = OpenStruct.new({
       Name:        'Test123', 
       Description: 'FooBar', 
-      FormattedID: 'Heyoo'})
+      FormattedID: 'Heyoo',
+      Actuals: 0})
     task.read= task
     task
   end
@@ -51,6 +52,7 @@ describe 'RallyCli Task' do
     end
 
     it 'end' do
+      rally_task.stub(:update).and_return(true)
       expected_time = ''
       Timecop.freeze(Time.current - 2.hours) do
         expected_time = Time.current
@@ -58,8 +60,10 @@ describe 'RallyCli Task' do
       end
 
       Timecop.freeze(expected_time + 2.hours) do
+        expect(task.progress).to eq(2)
         task.end
-        expect(task.actual_hours).to eq(2)
+        expect(task.work_hours).to be_nil
+        expect(task.start_time).to be_nil
       end
     end
 
@@ -67,7 +71,7 @@ describe 'RallyCli Task' do
       expect(task.to_yaml_properties).not_to include(:@rally_task)
     end
 
-    let(:methods) {%i(name description ready blocked blocked_reason estimate actuals to_do notes )}
+    let(:methods) {%i(name ready description blocked blocked_reason estimate actuals to_do notes )}
     it 'has methods to update a task' do
       methods.each do | method |
         expect(Rally::Task.method_defined? method).to be_true
