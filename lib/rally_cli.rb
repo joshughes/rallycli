@@ -1,83 +1,124 @@
-require 'thor'
-require "highline/import"
+#!/usr/bin/env ruby
+
+require 'rubygems'
+require 'commander/import'
 require_relative 'rally/cli'
 
-class RallyCli < Thor
-  def initialize(*args)
-    super(*args)
-    @rally_cli = Rally::Cli.new
-    @high_line = HighLine.new
-    @task = @rally_cli.current_task
-  end
+program :version, '0.0.1'
+program :description, 'Command line interface for Rally'
 
-  desc "current_task", "returns current task if set"
-  def current_task
+@rally_cli = Rally::Cli.new
+@task = @rally_cli.current_task
+@high_line = HighLine.new
+ 
+command :current_task do |c|
+  c.syntax = 'rally_cli current_task [options]'
+  c.summary = ''
+  c.description = ''
+  c.example 'description', 'command example'
+  c.option '--some-switch', 'Some switch that does something'
+  c.action do |args, options|
     say("#{@task.formattedID}: #{@task.name} - #{@task.description}")
   end
+end
 
-  desc "start_work", "starts work on the current task"
-  def start_work
+command :start_work do |c|
+  c.syntax = 'rally_cli start_work [options]'
+  c.summary = ''
+  c.description = ''
+  c.example 'description', 'command example'
+  c.option '--some-switch', 'Some switch that does something'
+  c.action do |args, options|
     @task.start
     say("Work started on #{@task.formattedID}")
   end
+end
 
-  desc "end_work", "ends work on the current task and updates actual hours on rally"
-  def end_work
+command :end_work do |c|
+  c.syntax = 'rally_cli end_work [options]'
+  c.summary = ''
+  c.description = ''
+  c.example 'description', 'command example'
+  c.option '--some-switch', 'Some switch that does something'
+  c.action do |args, options|
     @task.end
     say("Work ended with #{@task.work_hours} hours logged this session and a total of #{@task.actuals} hours logged for task #{@task.formattedID}")
   end
-
-  desc "work_progress", "gets the number of hours logged for current_task"
-  def work_progress
-    say("You have spent #{@task.progress} hours working on task #{@task.formattedID}")
-  end
-
-  desc "set_current_task", "choose the task to start work on"
-  option :all_users, type: :boolean, aliases: :au, desc: 'ignore user file fetching tasks'
-  option :interation, type: :boolean, aliases: :i, desc: 'scope task search to current_iteration instead of current_story'
-  option :project, type: :boolean, aliases: :p, desc: 'scope task search to the project level instead of only the current_story'
-  def set_current_task
-    loop do
-      task_groups = @rally_cli.tasks(options).each_slice(10).to_a
-      task_groups.cycle do |tasks|
-        @high_line.choose do | menu |
-          menu.prompt = "Please choose the task you wish to work on."
-          menu.shell  = false
-
-          tasks.each do |task|
-            menu.choice("#{task.formattedID}: #{task.description}") { @rally_cli.current_task = task }
-          end
-          menu.hidden(:next, "Next page of tasks") { next }
-          menu.hidden(:quit, "Exit program.") { exit }
-        end
-      end
-    end
-  end
-
-  desc "set_current_story", "choose the story to work on"
-  option :all_users, type: :boolean, aliases: :au, desc: 'ignore user file fetching stories'
-  option :project, type: :boolean, aliases: :p, desc: 'scope story search to the project level instead of only the current_iteration'
-  def set_current_story
-    loop do
-      story_groups = @rally_cli.stories(options).each_slice(10).to_a
-      story_groups.cycle do |stories|
-        @high_line.choose do | menu |
-          menu.prompt = "Please choose the story you wish to work on."
-          menu.shell  = false
-
-          stories.each do |story|
-            menu.choice("#{story.formattedID}: #{stroy.description}") { @rally_cli.current_story = story }
-          end
-          menu.hidden(:next, "Next page of stories") { next }
-          menu.hidden(:quit, "Exit program.") { exit }
-        end
-      end
-    end
-  end
-
-
 end
 
+command :work_progress do |c|
+  c.syntax = 'rally_cli work_progress [options]'
+  c.description = 'Display the hours spent on the current_task'
+  c.example 'description', 'command example'
+  c.option '--some-switch', 'Some switch that does something'
+  c.action do |args, options|
+    say("You have spent #{@task.progress} hours working on task #{@task.formattedID}")
+  end
+end
 
+command :set_task do |c|
+  c.syntax = 'rally_cli set_task [options]'
+  c.description = 'Display tasks for the user to select a task to work on'
+  c.example 'description', 'command example'
+  c.option '--some-switch', 'Some switch that does something'
+  c.action do |args, options|
+    task_groups = @rally_cli.tasks(options).each_slice(10).to_a
+    task_groups.cycle do |tasks|
+      system("clear")
+      @high_line.choose do | menu |
+        menu.prompt = "Please choose the task you wish to work on."
+        menu.shell  = false
 
-RallyCli.start(ARGV)
+        tasks.each do |task|
+          menu.choice("#{task.formattedID}: #{task.description}") { @rally_cli.current_task = task; exit }
+        end
+        menu.hidden(:next, "Next page of tasks") { next }
+        menu.hidden(:quit, "Exit program.") { exit }
+      end
+    end
+  end
+end
+
+command :set_story do |c|
+  c.syntax = 'rally_cli set_story [options]'
+  c.description = 'Display stories for the user to select a story to work on'
+  c.example 'description', 'command example'
+  c.option '--some-switch', 'Some switch that does something'
+  c.action do |args, options|
+    story_groups = @rally_cli.stories(options).each_slice(10).to_a
+    story_groups.cycle do |stories|
+      @high_line.choose do | menu |
+        menu.prompt = "Please choose the story you wish to work on."
+        menu.shell  = false
+
+        stories.each do |story|
+          menu.choice("#{story.formattedID}: #{stroy.description}") { @rally_cli.current_story = story; exit }
+        end
+        menu.hidden(:next, "Next page of stories") { next }
+        menu.hidden(:quit, "Exit program.") { exit }
+      end
+    end
+  end
+end
+
+command :edit_task do |c|
+  c.syntax = 'rally_cli edit_task [options]'
+  c.description = 'Edit a feild of the current task'
+  c.example 'description', 'command example'
+  c.option '--some-switch', 'Some switch that does something'
+  c.action do |args, options|
+    @task.description = ask_editor(@task.description)
+  end
+end
+
+command :edit_story do |c|
+  c.syntax = 'rally_cli edit_story [options]'
+  c.summary = ''
+  c.description = ''
+  c.example 'description', 'command example'
+  c.option '--some-switch', 'Some switch that does something'
+  c.action do |args, options|
+    # Do something or c.when_called Rally_cli::Commands::Edit_story
+  end
+end
+
