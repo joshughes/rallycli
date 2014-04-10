@@ -6,7 +6,7 @@ module TestHelper
   end
 
   def delete_all_test_stories(rally)
-    rally.project_stories.each do |story|
+    rally.stories.each do |story|
       story.rally_object.delete
     end
   end
