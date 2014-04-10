@@ -10,9 +10,11 @@ module Rally
   class Cli
     def initialize(options={})
       options.reverse_merge!({
-        username: ENV['RALLY_USERNAME'],
-        password: ENV['RALLY_PASSWORD'],
-        base_url: ENV['RALLY_BASE_URL']
+        username:  ENV['RALLY_USERNAME'],
+        password:  ENV['RALLY_PASSWORD'],
+        base_url:  ENV['RALLY_BASE_URL'],
+        project:   ENV['RALLY_PROJECT'],
+        workspace: ENV['RALLY_WORKSPACE']
         })
 
       @config = get_config_from_file[:rally_options] || Hash.new
@@ -22,7 +24,7 @@ module Rally
       headers.name    = "rally_cli"
       headers.version = "0.1.0"
 
-      @config[:headers]    = headers
+      @config[:headers] = headers
 
       rally_login
     end
