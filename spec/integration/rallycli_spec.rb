@@ -34,7 +34,7 @@ describe 'RallyCli' do
 
     describe 'retrives a list of tasks' do
 
-      it 'for the current story' do
+      it 'for the current story',test_construct: true do
         rally.current_story = test_story_object
         story2 = rally.create_story(test_story)
 
@@ -50,9 +50,7 @@ describe 'RallyCli' do
         expect { task.owner = nil }.to change{rally.tasks(:all_users).count - rally.tasks.count}.by(1)
       end
 
-      it 'for the current iteration' do
-        expect().to eq()
-      end
+      it 'for the current iteration' 
 
     end
   end
@@ -69,9 +67,7 @@ describe 'RallyCli' do
     it 'retrieves only stories in the current iteration' do
 
     end
-    it 'retrives stories from the current project' do
-      expect(rally.stories.count).to be > 0
-    end
+    it 'retrives stories from the current project' 
 
   end
 
