@@ -58,6 +58,19 @@ module Rally
         end
       end
 
+      def build_query(query_objects)
+        query = ""
+        query_objects.each_with_index do |object,index|
+          query += "(#{object})"   
+          query += " AND " if (query_objects.length - 1 > index)
+        end
+        if query_objects.length > 1
+          query.prepend("(")
+          query += ")" 
+        end
+        query
+      end
+
       private 
 
       def define_rally_methods(methods)

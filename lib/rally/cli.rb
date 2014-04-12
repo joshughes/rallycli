@@ -50,6 +50,11 @@ module Rally
       Task.save("current_task",@task)
     end
 
+    def current_story(story)
+      @story = story
+      Story.save("current_story", @story)
+    end
+
     def current_task
       @task ||= Task.load("current_task", self)
     end
@@ -88,7 +93,7 @@ module Rally
       Story.create(story,current_user,self)
     end
 
-    def stories(options={})
+    def stories(filter=nil)
       Story.stories_for_project(self)
     end
     alias_method :work_products, :stories

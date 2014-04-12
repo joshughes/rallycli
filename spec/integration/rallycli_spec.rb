@@ -32,9 +32,27 @@ describe 'RallyCli' do
       expect { rally.create_task(test_task, test_story_object) }.to change{rally.tasks.count}.by(1)
     end 
 
-    it 'retrives a list of tasks assigned to the user' do
-      rally.create_task(test_task, test_story_object)
-      expect(rally.tasks.count).to be > 0
+    describe 'retrives a list of tasks' do
+
+      it 'for the current story' do
+        rally.current_story test_story_object
+        story2 = rally.create_story(test_story)
+
+        rally.create_task(test_task, test_story_object)
+        rally.create_task(test_task, story2)
+
+        expect(rally.tasks(:current_story).count).to eq 1
+        expect(rally.tasks.count).to be > 1
+      end
+
+      it 'outside the current user' do
+
+      end
+
+      it 'for the current iteration' do
+        expect().to eq()
+      end
+
     end
   end
 
@@ -47,9 +65,10 @@ describe 'RallyCli' do
     it 'can create a new user story' do
       expect { rally.create_story(test_story) }.to change{rally.stories.count}.by(1)
     end
-    it 'can give the user open stories from the current iteration' do
+    it 'retrieves only stories in the current iteration' do
+
     end
-    it 'can give the user open stories for the current project' do
+    it 'retrives stories from the current project' do
       expect(rally.stories.count).to be > 0
     end
 
