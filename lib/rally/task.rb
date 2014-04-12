@@ -10,7 +10,7 @@ module Rally
       obj["Name"]        = task[:name]
       obj["Description"] = task[:description]
       obj["WorkProduct"] = story.objectID
-      obj["Owner"]       = user.ObjectID
+      obj["Owner"]       = user.ObjectID 
       self.new(rally_api.create("task", obj))
     end
 

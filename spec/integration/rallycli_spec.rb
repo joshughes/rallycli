@@ -35,7 +35,7 @@ describe 'RallyCli' do
     describe 'retrives a list of tasks' do
 
       it 'for the current story' do
-        rally.current_story test_story_object
+        rally.current_story = test_story_object
         story2 = rally.create_story(test_story)
 
         rally.create_task(test_task, test_story_object)
@@ -46,7 +46,8 @@ describe 'RallyCli' do
       end
 
       it 'outside the current user' do
-
+        task = rally.create_task(test_task, test_story_object)
+        expect { task.owner = nil }.to change{rally.tasks(:all_users).count - rally.tasks.count}.by(1)
       end
 
       it 'for the current iteration' do

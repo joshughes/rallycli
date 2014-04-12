@@ -50,7 +50,7 @@ module Rally
       Task.save("current_task",@task)
     end
 
-    def current_story(story)
+    def current_story=(story)
       @story = story
       Story.save("current_story", @story)
     end
@@ -60,7 +60,7 @@ module Rally
     end
 
     def current_story
-      @story ||= Task.load("current_story", selfcat )
+      @story ||= Task.load("current_story", self)
     end
 
     def current_user
@@ -72,12 +72,19 @@ module Rally
       @rally.find(query).first
     end
 
-    def tasks(options={})
+    def tasks(filter=nil)
       tasks = []
+      query_conditions = ["State != Completed"]
       query = RallyAPI::RallyQuery.new
       query.type         = 'task'
       query.project      = {"_ref" => @rally.rally_default_project.ref } if @config[:project]
-      query.query_string = "((Owner.Name = #{@config[:username]}) AND (State != Completed))"
+      if(filter == :current_story)
+        query_conditions << "WorkProduct.ObjectID = #{current_story.objectID}"
+      end
+      unless(filter == :all_users)
+        query_conditions << "Owner.Name = #{@config[:username]}"
+      end
+      query.query_string = Task.build_query(query_conditions)
       results = @rally.find(query)
       results.each do |result|
         tasks << Task.new(result.read)
@@ -85,11 +92,11 @@ module Rally
       tasks
     end
 
-    def create_task(task, story=current_story)
+    def create_task(task, story=current_story, user=current_user)
       Task.create(task, story, current_user, self)
     end
 
-    def create_story(story)
+    def create_story(story, user=current_user)
       Story.create(story,current_user,self)
     end
 
