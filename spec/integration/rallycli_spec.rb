@@ -4,6 +4,16 @@ describe 'RallyCli' do
 
   let(:rally) {Rally::Cli.new}
 
+  let(:iteration) do
+    rally_api = rally.rally_api
+    obj = {}
+    obj["Name"]        = "TestIteration"
+    obj["StartDate"]   = Time.current
+    obj["EndDate"]     = Time.current + 2.days
+    obj["State"]       = "Planning"
+    rally_api.create("iteration", obj)
+  end
+
   describe 'user login' do
     it 'should throw an error when authentication fails' do
       expect{RallyCli.new(username: 'foo', password: 'bar', project: 'FooBar')}.to raise_error(StandardError)
@@ -41,17 +51,33 @@ describe 'RallyCli' do
         rally.create_task(test_task, test_story_object)
         rally.create_task(test_task, story2)
 
-        expect(rally.tasks(:current_story).count).to eq 1
+        expect(rally.tasks([:current_story]).count).to eq 1
         expect(rally.tasks.count).to be > 1
       end
 
       it 'outside the current user' do
         task = rally.create_task(test_task, test_story_object)
-        expect { task.owner = nil }.to change{rally.tasks(:all_users).count - rally.tasks.count}.by(1)
+        expect { task.owner = nil }.to change{rally.tasks([:all_users]).count - rally.tasks.count}.by(1)
+        task.rally_object.delete
       end
 
-      it 'for the current iteration' 
+      describe 'for the current iteration' do
+        it 'when tasks exist outside the iteration' do
+          test_story_object.update_rally_object("Iteration.ObjectID", iteration.ObjectID)
+          story2 = rally.create_story(test_story)
+          
+          rally.create_task(test_task, test_story_object)
+          rally.create_task(test_task, story2)
 
+          expect(rally.tasks.count).to be > 1
+          binding.pry
+          expect(rally.tasks([:current_iteration]).count).to eq 1
+        end
+
+        after(:each) do
+          iteration.delete
+        end
+      end
     end
   end
 

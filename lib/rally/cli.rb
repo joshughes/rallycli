@@ -72,24 +72,8 @@ module Rally
       @rally.find(query).first
     end
 
-    def tasks(filter=nil)
-      tasks = []
-      query_conditions = ["State != Completed"]
-      query = RallyAPI::RallyQuery.new
-      query.type         = 'task'
-      query.project      = {"_ref" => @rally.rally_default_project.ref } if @config[:project]
-      if(filter == :current_story)
-        query_conditions << "WorkProduct.ObjectID = #{current_story.objectID}"
-      end
-      unless(filter == :all_users)
-        query_conditions << "Owner.Name = #{@config[:username]}"
-      end
-      query.query_string = Task.build_query(query_conditions)
-      results = @rally.find(query)
-      results.each do |result|
-        tasks << Task.new(result.read)
-      end
-      tasks
+    def tasks(filter=[])
+      Task.find(filter,self)
     end
 
     def create_task(task, story=current_story, user=current_user)

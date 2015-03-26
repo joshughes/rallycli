@@ -77,7 +77,11 @@ module Rally
       end
     end
 
-
+    def update_rally_object(field, value)
+      field_updates = {field => value}
+      @rally_object.update(field_updates)
+      @rally_object = @rally_object.read
+    end
 
     private 
 
@@ -88,9 +92,7 @@ module Rally
         end
 
         self.class.send :define_method, method+'=' do | arg |
-          field_updates = {method.camelize => arg}
-          @rally_object.update(field_updates)
-          @rally_object = @rally_object.read
+          update_rally_object(method.camelize, arg)
           self.send(method)
         end
       end
