@@ -10,7 +10,7 @@ module Rally
       obj["Name"]        = task[:name]
       obj["Description"] = task[:description]
       obj["WorkProduct"] = story.objectID
-      obj["Owner"]       = user.ObjectID 
+      obj["Owner"]       = user.ObjectID
       self.new(rally_api.create("task", obj))
     end
 
@@ -31,7 +31,6 @@ module Rally
         query_conditions << "Owner.Name = #{rally_cli.config[:username]}"
       end
       query.query_string = Task.build_query(query_conditions)
-      binding.pry
       results = rally_api.find(query)
       results.each do |result|
         tasks << Task.new(result.read)
@@ -39,7 +38,7 @@ module Rally
       tasks
     end
 
-    attr_accessor :start_time, :work_hours 
+    attr_accessor :start_time, :work_hours
 
     def start
       @start_time = Time.current
@@ -62,7 +61,7 @@ module Rally
       @work_hours   = object.work_hours
     end
 
-    private 
+    private
 
     def update_actuals
       if self.actuals

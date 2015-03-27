@@ -26,10 +26,10 @@ describe 'RallyCli' do
 
   end
 
-  
+
   let(:test_story) { {name: "My cool story", description: "needs to do cool things!" } }
   describe 'user tasks' do
-    
+
 
     let(:test_task) { {name: "My cool task", description: "needs to do cool things!"} }
     let(:test_story_object) {rally.create_story(test_story)}
@@ -40,7 +40,7 @@ describe 'RallyCli' do
 
     it 'can create a new task' do
       expect { rally.create_task(test_task, test_story_object) }.to change{rally.tasks.count}.by(1)
-    end 
+    end
 
     describe 'retrives a list of tasks' do
 
@@ -65,12 +65,11 @@ describe 'RallyCli' do
         it 'when tasks exist outside the iteration' do
           test_story_object.update_rally_object("Iteration.ObjectID", iteration.ObjectID)
           story2 = rally.create_story(test_story)
-          
+
           rally.create_task(test_task, test_story_object)
           rally.create_task(test_task, story2)
 
           expect(rally.tasks.count).to be > 1
-          binding.pry
           expect(rally.tasks([:current_iteration]).count).to eq 1
         end
 
@@ -82,7 +81,7 @@ describe 'RallyCli' do
   end
 
   describe 'user stories' do
-    
+
     after(:all) do
       delete_all_test_stories(rally)
     end
@@ -93,7 +92,7 @@ describe 'RallyCli' do
     it 'retrieves only stories in the current iteration' do
 
     end
-    it 'retrives stories from the current project' 
+    it 'retrives stories from the current project'
 
   end
 

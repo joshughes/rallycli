@@ -12,9 +12,9 @@ Gem::Specification.new do |spec|
   spec.license       = 'Apache 2.0'
 
 
-  spec.add_dependency 'activesupport', '~> 4.0.4'
+  spec.add_dependency 'activesupport', '~> 4.0'
   spec.add_dependency 'i18n'
-  spec.add_dependency 'rally_api', '~> 0.9.25'
+  spec.add_dependency 'rally_api', '~> 1.1'
   spec.add_dependency 'commander'
   spec.add_dependency 'highline'
 

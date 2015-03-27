@@ -60,7 +60,7 @@ module Rally
     end
 
     def current_story
-      @story ||= Task.load("current_story", self)
+      @story ||= Story.load("current_story", self)
     end
 
     def current_user

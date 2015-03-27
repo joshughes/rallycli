@@ -1,7 +1,7 @@
 require 'fileutils'
 module Rally
   class Base
-     
+
     EDITABLE_TEXT_FIELDS = %w(name description blocked_reason notes)
     EDITABLE_BOOLEAN_FIELDS = %w(ready blocked)
     EDITABLE_OBJECT_RELATIONS = %w(owner)
@@ -41,14 +41,14 @@ module Rally
         if (query_objects.length - 1 > index)
           if((index+1) % 2 == 0)
             query.prepend("(")
-            query += ")" 
+            query += ")"
           end
-          query += " AND " 
+          query += " AND "
         end
       end
       if query_objects.length > 1
         query.prepend("(")
-        query += ")" 
+        query += ")"
       end
       query
     end
@@ -83,11 +83,11 @@ module Rally
       @rally_object = @rally_object.read
     end
 
-    private 
+    private
 
     def define_rally_methods(methods)
       methods.each do | method |
-        self.class.send :define_method, method do 
+        self.class.send :define_method, method do
           @rally_object.send(method.camelize)
         end
 

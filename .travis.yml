@@ -1,9 +1,9 @@
 language: ruby
 rvm:
-  - 2.1.0
+- 2.1.0
 env:
   global:
-    - secure: PMxPBweOsyLCKdvCCCeg96PIpSMiR5kPWiOr66xlif62m/Xahg0taVomFD7dZY+ZOa1QhsqLrEobFFsALvO2OAfdta3ueGj+BN766aOFKYdbEzd+S+t40XIeMvLww3DQQPPus5mWvCxMsq+x+kLDRb+zilqvuR4eRGEj2v1IcJU=
-    - secure: Rq7m28iii5TRiZDcY3bv3KtKxkjn7/uOrcSfTTbXQ8aUpOhmyHXPBlYteHZsstyXORhJmH64bnqA+H+NjZ/oQvh4OHxZs1MhAQrmznsysU2Rc0UmbJ7gxLNGTLNNlVDOwCUscrx3THFB48NZmdb1YAA/95We58YbBgdhd1bEF+I=
-    - secure: "oywdP0YlBv79aHpd+IOc5WAV/Kazu0/ApmyoKMEAjRqadXC5MieogUn1HJWS+tbkw6QAArzlHfoDDE5FArTka0+HeLsGXSrHbM9mPz71ci8/t4udimIe/2e10rsa6rfsG+XCHWpUAYhKGQ4WH1ufNY3GQdZeKa+SY8EkQ7203tw="
-    - secure: "Pkerjpkm2XMcL0hPaskYPwSOD7PLdFVYZYkfWKbZZv1tJ+jGDS91FfeK2o5E6G0TEQ8nvsSZkjAe5nFryee3nkY8L2lT7CiXUmGwvJf7GtIf9lo5360hpR/t2hlMMVXHdS6+mvzEdYiN9yGcZhHhvMY/t2D28ckUdtNN+xkUOck="
+  - secure: G3hgAQOfQWl8Z6kI+RgZjuCuQGAIi8sVnq6DYzLCCtFt8Ipvgop6wotVdpjIlCSXvurbSFswr2cw4Lq9xBFTuoc6jqNLOFs2simG+92XwnffLKRCV2q8h7FNcyms9UEMDzBOQFLtz97dIXur6wWsiyEU7Yz81XubYp/E1ikXDXI=
+  - secure: ZrfY1ygq1lzOyebgfIAuUvyk7+gYhRJXXvP9TwPkYjcVZLueamXds2RLp5jhF2zSh274piZuEXOsNpzmEquTet/nMksaOiUdOdLViEBIfs8pRscmh20wXbiaL7JSpFpXYiJcuxqHhyegE//0jQJoeXtVq3xS5+BomTkUMKc18Uw=
+  - secure: H5/AZqmA09yH8J13jguz9s1PUlbSg9SHKr9ju8hBDpoJZjOov6NJbKqXQdWeCSgkwP4n1gvD4n0QbTWPR4Yqd1IfNFmzGOOJVOt3FJ9tOV55MLG0UFlwrHwojTMXelFXq5rGmYXcBelV+Akh3syOeryMZRmP5GtAFggRqqygKLs=
+  - secure: t/7Zyt0wcU72q/VzbzBt/GX560alU1BgeJJkBIra3otz0Tq9I4jKYOSx7Po0Q62AXpw/lO9Wf2nKoF++bwXidE8EQyYcFl0au1cvGM+GLLurGMKCLLqesF7FWcexoMMwUeQa96fSKWSDiJUiQZqdPZNt/1o03VYGehgT5Itf6QE=
