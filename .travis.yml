@@ -1,9 +1,3 @@
 language: ruby
 rvm:
-- 2.1.0
-env:
-  global:
-  - secure: G3hgAQOfQWl8Z6kI+RgZjuCuQGAIi8sVnq6DYzLCCtFt8Ipvgop6wotVdpjIlCSXvurbSFswr2cw4Lq9xBFTuoc6jqNLOFs2simG+92XwnffLKRCV2q8h7FNcyms9UEMDzBOQFLtz97dIXur6wWsiyEU7Yz81XubYp/E1ikXDXI=
-  - secure: ZrfY1ygq1lzOyebgfIAuUvyk7+gYhRJXXvP9TwPkYjcVZLueamXds2RLp5jhF2zSh274piZuEXOsNpzmEquTet/nMksaOiUdOdLViEBIfs8pRscmh20wXbiaL7JSpFpXYiJcuxqHhyegE//0jQJoeXtVq3xS5+BomTkUMKc18Uw=
-  - secure: H5/AZqmA09yH8J13jguz9s1PUlbSg9SHKr9ju8hBDpoJZjOov6NJbKqXQdWeCSgkwP4n1gvD4n0QbTWPR4Yqd1IfNFmzGOOJVOt3FJ9tOV55MLG0UFlwrHwojTMXelFXq5rGmYXcBelV+Akh3syOeryMZRmP5GtAFggRqqygKLs=
-  - secure: t/7Zyt0wcU72q/VzbzBt/GX560alU1BgeJJkBIra3otz0Tq9I4jKYOSx7Po0Q62AXpw/lO9Wf2nKoF++bwXidE8EQyYcFl0au1cvGM+GLLurGMKCLLqesF7FWcexoMMwUeQa96fSKWSDiJUiQZqdPZNt/1o03VYGehgT5Itf6QE=
+- 2.1.5
