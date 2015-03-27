@@ -10,11 +10,35 @@ module Rally
       obj["Name"]        = task[:name]
       obj["Description"] = task[:description]
       obj["WorkProduct"] = story.objectID
-      obj["Owner"]       = user.ObjectID 
+      obj["Owner"]       = user.ObjectID
       self.new(rally_api.create("task", obj))
     end
 
-    attr_accessor :start_time, :work_hours 
+    def self.find(filter, rally_cli)
+      rally_api = rally_cli.rally_api
+      tasks = []
+      query_conditions = ["State != Completed"]
+      query = RallyAPI::RallyQuery.new
+      query.type         = 'task'
+      query.project      = {"_ref" => rally_api.rally_default_project.ref } if rally_cli.config[:project]
+      if(filter.include?(:current_story))
+        query_conditions << "WorkProduct.ObjectID = #{current_story.objectID}"
+      elsif(filter.include?(:current_iteration))
+        query_conditions << "Iteration.StartDate <= today"
+        query_conditions << "Iteration.EndDate >= today"
+      end
+      unless(filter.include?(:all_users))
+        query_conditions << "Owner.Name = #{rally_cli.config[:username]}"
+      end
+      query.query_string = Task.build_query(query_conditions)
+      results = rally_api.find(query)
+      results.each do |result|
+        tasks << Task.new(result.read)
+      end
+      tasks
+    end
+
+    attr_accessor :start_time, :work_hours
 
     def start
       @start_time = Time.current
@@ -37,7 +61,7 @@ module Rally
       @work_hours   = object.work_hours
     end
 
-    private 
+    private
 
     def update_actuals
       if self.actuals

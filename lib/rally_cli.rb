@@ -10,7 +10,7 @@ program :description, 'Command line interface for Rally'
 @rally_cli = Rally::Cli.new
 @task = @rally_cli.current_task
 @high_line = HighLine.new
- 
+
 command :current_task do |c|
   c.syntax = 'rally_cli current_task [options]'
   c.summary = ''
@@ -67,7 +67,7 @@ command :set_task do |c|
       prompt:        "Please choose the task you wish to work on.",
       option_text:   proc { |option| "#{option.formattedID}: #{option.description}"},
       option_action: proc { |option| @rally_cli.current_task = option; exit }
-    }  
+    }
     menu_select(menu)
   end
 end
@@ -94,7 +94,7 @@ command :edit_task do |c|
   c.example 'description', 'command example'
   c.option '--some-switch', 'Some switch that does something'
   c.action do |args, options|
-    edit_object(@task, args[0])
+    edit_object(@rally_cli.current_task, args[0])
   end
 end
 
@@ -105,12 +105,12 @@ command :edit_story do |c|
   c.example 'description', 'command example'
   c.option '--some-switch', 'Some switch that does something'
   c.action do |args, options|
-    # Do something or c.when_called Rally_cli::Commands::Edit_story
+    edit_object(@rally_cli.current_story, args[0])
   end
 end
 
 
-private 
+private
 
 
 def edit_object(object, edit_field, options=nil)
@@ -137,7 +137,7 @@ def menu_select(menu_hash)
   groups.cycle do |options|
     system("clear")
     @high_line.choose do | menu |
-      menu.prompt = menu_hash[:prompt] 
+      menu.prompt = menu_hash[:prompt]
       menu.prompt += "\n next: for next 10 results" if groups.length > 1
       menu.prompt += "\n quit: to exit"
       menu.shell  = false
@@ -150,5 +150,3 @@ def menu_select(menu_hash)
     end
   end
 end
-
-
