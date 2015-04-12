@@ -8,7 +8,7 @@ describe 'RallyCli' do
     rally_api = rally.rally_api
     obj = {}
     obj["Name"]        = "TestIteration"
-    obj["StartDate"]   = Time.current
+    obj["StartDate"]   = Time.current - 1.days
     obj["EndDate"]     = Time.current + 2.days
     obj["State"]       = "Planning"
     rally_api.create("iteration", obj)
@@ -63,12 +63,11 @@ describe 'RallyCli' do
 
       describe 'for the current iteration' do
         it 'when tasks exist outside the iteration' do
-          test_story_object.update_rally_object("Iteration.ObjectID", iteration.ObjectID)
+          test_story_object.update_rally_object("Iteration", iteration.ObjectID)
           story2 = rally.create_story(test_story)
 
           rally.create_task(test_task, test_story_object)
           rally.create_task(test_task, story2)
-
           expect(rally.tasks.count).to be > 1
           expect(rally.tasks([:current_iteration]).count).to eq 1
         end

@@ -22,7 +22,7 @@ module Rally
       query.type         = 'task'
       query.project      = {"_ref" => rally_api.rally_default_project.ref } if rally_cli.config[:project]
       if(filter.include?(:current_story))
-        query_conditions << "WorkProduct.ObjectID = #{current_story.objectID}"
+        query_conditions << "WorkProduct.ObjectID = #{rally_cli.current_story.objectID}"
       elsif(filter.include?(:current_iteration))
         query_conditions << "Iteration.StartDate <= today"
         query_conditions << "Iteration.EndDate >= today"

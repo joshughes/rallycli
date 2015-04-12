@@ -35,22 +35,19 @@ module Rally
     end
 
     def self.build_query(query_objects)
-      query = ""
-      query_objects.each_with_index do |object,index|
-        query += "(#{object})"
-        if (query_objects.length - 1 > index)
-          if((index+1) % 2 == 0)
-            query.prepend("(")
-            query += ")"
-          end
-          query += " AND "
+      query_string = "(#{query_objects[0]})"
+      if(query_objects.length >= 2)
+        query_string += " AND (#{query_objects[1]})"
+        query_string.prepend "("
+        query_string += ")"
+        if(query_objects.length > 2)
+          return '(' + query_string + ' AND ' + self.build_query(query_objects[2..(query_objects.length-1)]) + ')'
+        else
+          return query_string
         end
+      else
+        return '(' + query_objects.first + ')'
       end
-      if query_objects.length > 1
-        query.prepend("(")
-        query += ")"
-      end
-      query
     end
 
     attr_accessor :rally_object
