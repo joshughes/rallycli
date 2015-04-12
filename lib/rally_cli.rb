@@ -8,7 +8,7 @@ program :version, '0.0.1'
 program :description, 'Command line interface for Rally'
 
 @rally_cli = Rally::Cli.new
-@task = @rally_cli.current_task
+#@task = @rally_cli.current_task
 @high_line = HighLine.new
 
 command :current_task do |c|

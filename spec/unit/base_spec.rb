@@ -19,5 +19,13 @@ describe 'RallyCli Base' do
       query << "This.is = Dog"
       expect(Rally::Base.build_query(query)).to eq(expected_query)
     end
+
+    it 'builds queries over three conditions correctly' do
+      expected_query = "(((ScheduleState != Completed) AND (Owner.Name = FooBar)) AND ((This.is = Dog) AND (Foo.bar = Bazz)))"
+      query << "Owner.Name = FooBar"
+      query << "This.is = Dog"
+      query << "Foo.bar = Bazz"
+      expect(Rally::Base.build_query(query)).to eq(expected_query)
+    end
   end
 end

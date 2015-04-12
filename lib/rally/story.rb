@@ -15,7 +15,7 @@ module Rally
       stories = []
       query = RallyAPI::RallyQuery.new
       query.type         = 'story'
-      query.project      = {"_ref" => rally_cli.default_project_ref } 
+      query.project      = {"_ref" => rally_cli.default_project_ref }
       #AND (Owner.Name = #{rally_cli.config[:username]})
       query.query_string = "(ScheduleState != Completed)"
       results = rally_cli.rally_api.find(query)
