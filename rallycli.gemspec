@@ -6,9 +6,10 @@ Gem::Specification.new do |spec|
   spec.description = "Rally CLI tool"
   spec.authors     = ["Joseph Hughes"]
   spec.email       = ''
-  spec.files       = ["lib/rally_cli.rb"]
-  spec.homepage    =
-    'https://github.com/joshughes/rallycli'
+  spec.files       = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features)/}) }
+  spec.require_paths = ["lib"]
+  spec.executables   << 'rally_cli'
+  spec.homepage      = 'https://github.com/joshughes/rallycli'
   spec.license       = 'Apache 2.0'
 
 
