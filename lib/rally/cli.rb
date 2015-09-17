@@ -16,8 +16,9 @@ module Rally
         project:   ENV['RALLY_PROJECT'],
         workspace: ENV['RALLY_WORKSPACE']
         })
+      options.delete_if {|key, value| !value }
 
-      @config = get_config_from_file[:rally_options] || Hash.new
+      @config = get_config_from_file || Hash.new
       @config.merge!(options)
 
       headers = RallyAPI::CustomHttpHeader.new()

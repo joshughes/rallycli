@@ -3,9 +3,9 @@ module Rally
   class Base
 
     EDITABLE_TEXT_FIELDS = %w(name description blocked_reason notes)
-    EDITABLE_BOOLEAN_FIELDS = %w(ready blocked expedite)
+    EDITABLE_BOOLEAN_FIELDS = %w(ready blocked)
     EDITABLE_OBJECT_RELATIONS = %w(owner)
-    EDITABLE_SELECT_FIELDS = []
+    EDITABLE_SELECT_FIELDS = {}
 
     def self.save(name,task)
       unless File.directory?('.rally_cli')
@@ -16,15 +16,26 @@ module Rally
       end
     end
 
-    def self.rally_methods
-      EDITABLE_TEXT_FIELDS + EDITABLE_BOOLEAN_FIELDS + EDITABLE_OBJECT_RELATIONS + EDITABLE_SELECT_FIELDS
+    def self.rally_methods(config=nil)
+      if config
+        if config.include?(:custom_fields) && config[:custom_fields].include?(self.name.downcase.demodulize.to_sym)
+          config[:custom_fields][self.name.downcase.demodulize.to_sym].each do | field_type, fields |
+            if  "EDITABLE_SELECT_FIELDS" == "EDITABLE_#{field_type.upcase}"
+              fields.each do |field_name, field_value|
+                EDITABLE_SELECT_FIELDS[field_name.to_s] = field_value
+              end
+            end
+          end
+        end
+      end
+      EDITABLE_TEXT_FIELDS + EDITABLE_BOOLEAN_FIELDS + EDITABLE_OBJECT_RELATIONS + EDITABLE_SELECT_FIELDS.keys
     end
 
     def self.load(file_name, rally_cli)
       file = File.open(".rally_cli/#{file_name}.yaml", "r")
       object = YAML.load(file)
       rally_object =  self.find_by_formattedID(object.formattedID, rally_cli)
-      object.class.new rally_object, object
+      object.class.new rally_object, rally_cli.config, object
     end
 
     def self.find_by_formattedID(formattedID, rally_cli)
@@ -54,11 +65,11 @@ module Rally
     attr_accessor :rally_object
     attr_reader   :formattedID, :objectID
 
-    def initialize(rally_object, object=nil)
+    def initialize(rally_object, config=nil, object=nil)
       @rally_object   = rally_object
       @formattedID    = rally_object.FormattedID
       @objectID       = rally_object.ObjectID
-      define_rally_methods self.class.rally_methods
+      define_rally_methods self.class.rally_methods(config)
       load(object) if object
     end
 
