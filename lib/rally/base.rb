@@ -5,7 +5,7 @@ module Rally
     EDITABLE_TEXT_FIELDS = %w(name description blocked_reason notes)
     EDITABLE_BOOLEAN_FIELDS = %w(ready blocked expedite)
     EDITABLE_OBJECT_RELATIONS = %w(owner)
-    EDITABLE_SELECT_FIELDS = {}
+    EDITABLE_SELECT_FIELDS = []
 
     def self.save(name,task)
       unless File.directory?('.rally_cli')
