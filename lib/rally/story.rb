@@ -1,6 +1,8 @@
 require_relative 'base'
 module Rally
   class Story < Base
+    
+    EDITABLE_SELECT_FIELDS = { expedite: ['Yes','No'] }
 
     def self.create(story, user, rally_cli)
       rally_api = rally_cli.rally_api
