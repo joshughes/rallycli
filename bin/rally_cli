@@ -127,6 +127,12 @@ def edit_object(object, edit_field, options=nil)
       option_action: proc { |option| object.send("#{edit_field}=",option.objectID); exit}
     }
     menu_select(menu)
+  elsif(object.class::EDITABLE_SELECT_FIELDS.has_key?(edit_field.to_sym))
+    menu={
+      options: object.class::EDITABLE_SELECT_FIELDS[edit_field.to_sym],
+      prompt:  "Please select the value to set for #{end_filed}",
+      option_action: proc { |option| object.send("#{edit_field}=", option); exit}
+    }
   else
     say("#{edit_field.capitalize} is not editable for #{object.class} #{object.formattedID}")
   end
