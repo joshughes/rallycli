@@ -4,13 +4,13 @@ module Rally
 
     EDITABLE_SELECT_FIELDS['expedite'] = ['Yes','No']
 
-    def self.create(story, user, rally_cli)
-      rally_api = rally_cli.rally_api
-      obj = {}
-      obj["Name"]        = story[:name]
-      obj["Description"] = story[:description]
-      obj["Owner"]       = user.ObjectID
-      self.new(rally_api.create("story", obj), rally_cli.config)
+    def self.find(filter, rally_cli, query = RallyAPI::RallyQuery.new)
+      query = RallyAPI::RallyQuery.new
+      query.type         = 'story'
+      query.query_string = "(ScheduleState != Completed)"
+      query.limit = 10
+      query.page_size = 10
+      super
     end
 
     def self.stories_for_project(rally_cli)
@@ -23,7 +23,6 @@ module Rally
       query.limit = 10
       query.page_size = 10
       results = rally_cli.rally_api.find(query)
-      binding.pry
       results.each do |result|
         stories << Story.new(result.read)
       end

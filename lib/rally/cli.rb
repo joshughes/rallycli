@@ -26,7 +26,6 @@ module Rally
       headers.version = "0.1.0"
 
       @config[:headers] = headers
-
       rally_login
     end
 
@@ -78,16 +77,17 @@ module Rally
     end
 
     def create_task(task, story=current_story, user=current_user)
-      Task.create(task, story, current_user, self)
+      Task.create(task, user, self, story)
     end
 
-    def create_story(story, user=current_user)
-      Story.create(story,current_user,self)
+    def create_story(story, user=current_user, parent=nil)
+      Story.create(story, user, self, parent)
     end
 
-    def stories(filter=nil)
-      Story.stories_for_project(self)
+    def stories(filter=[])
+      Story.find(filter,self)
     end
+
     alias_method :work_products, :stories
 
     def default_project_ref

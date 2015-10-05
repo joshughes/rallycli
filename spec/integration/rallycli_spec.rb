@@ -27,7 +27,8 @@ describe 'RallyCli' do
   end
 
 
-  let(:test_story) { {name: "My cool story", description: "needs to do cool things!" } }
+  let(:test_story) { {name: "My cool story", description: "needs to do cool things!", iteration: iteration.ObjectID } }
+  let(:test_story_no_iteration) { {name: "My cool story no iteration", description: "needs to do cool things!" } }
   describe 'user tasks' do
 
 
@@ -51,30 +52,36 @@ describe 'RallyCli' do
         rally.create_task(test_task, test_story_object)
         rally.create_task(test_task, story2)
 
-        expect(rally.tasks([:current_story]).count).to eq 1
-        expect(rally.tasks.count).to be > 1
+        expect(rally.tasks.count).to eq 1
+        expect(rally.tasks([:all_stories]).count).to be > 1
       end
 
       it 'outside the current user' do
         task = rally.create_task(test_task, test_story_object)
-        expect { task.owner = nil }.to change{rally.tasks([:all_users]).count - rally.tasks.count}.by(1)
+        expect { task.owner = nil }.to change { rally.tasks([:all_users]).count - rally.tasks.count }.by(1)
         task.rally_object.delete
       end
 
       describe 'for the current iteration' do
-        it 'when tasks exist outside the iteration' do
-          test_story_object.update_rally_object("Iteration", iteration.ObjectID)
-          story2 = rally.create_story(test_story)
+        let(:no_iteration_story) { rally.create_story(test_story_no_iteration) }
 
+        before(:each) do
           rally.create_task(test_task, test_story_object)
-          rally.create_task(test_task, story2)
-          expect(rally.tasks.count).to be > 1
-          expect(rally.tasks([:current_iteration]).count).to eq 1
         end
 
-        after(:each) do
+        it 'when tasks exist outside the iteration' do
+          expect{ rally.create_task(test_task, no_iteration_story) }.to change{ rally.tasks([:all_iterations]).count }.by 1
+        end
+
+        it 'filters tasks outside the interation' do
+          expect { rally.create_task(test_task, no_iteration_story) }.to_not change{ rally.tasks.count }
+        end
+
+        after(:all) do
+          delete_all_test_stories(rally)
           iteration.delete
         end
+
       end
     end
   end
