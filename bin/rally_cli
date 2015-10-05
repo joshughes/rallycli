@@ -120,22 +120,32 @@ def edit_object(object, edit_field, options=nil)
   elsif(object.class::EDITABLE_BOOLEAN_FIELDS.include?(edit_field))
     object.send(edit_field+"=",@high_line.agree("Is #{object.formattedID} #{edit_field}?"))
   elsif(object.class::EDITABLE_OBJECT_RELATIONS.include?(edit_field))
-    menu ={
-      options:       @rally_cli.send("#{edit_field.pluralize}",options),
-      prompt:        "Please choose the new #{edit_field} for #{object.class} #{object.formattedID}",
-      option_text:   proc { |option| "#{option.formattedID}: #{option.name}"},
-      option_action: proc { |option| object.send("#{edit_field}=",option.objectID); exit}
-    }
-    menu_select(menu)
-  elsif(object.class::EDITABLE_SELECT_FIELDS.has_key?(edit_field.to_sym))
-    menu={
-      options: object.class::EDITABLE_SELECT_FIELDS[edit_field.to_sym],
-      prompt:  "Please select the value to set for #{end_filed}",
-      option_action: proc { |option| object.send("#{edit_field}=", option); exit}
-    }
+    select_relation(object, edit_field, options)
+  elsif(object.class::EDITABLE_SELECT_FIELDS.has_key?(edit_field.to_s))
+    select_fields(object, object.class::EDITABLE_SELECT_FIELDS[edit_field.to_s], options)
   else
     say("#{edit_field.capitalize} is not editable for #{object.class} #{object.formattedID}")
   end
+end
+
+def select_fields(object, select_options, options=nil)
+  menu={
+    options: select_options,
+    prompt:  "Please select the value to set for #{edit_field}",
+    option_text:   proc { |option| "#{option}"},
+    option_action: proc { |option| object.send("#{edit_field}=", option); exit}
+  }
+  menu_select(menu)
+end
+
+def select_relation(object, relation_field, options=nil)
+  menu ={
+    options:       @rally_cli.send("#{relation_field.pluralize}",options),
+    prompt:        "Please choose the new #{relation_field} for #{object.class} #{object.formattedID}",
+    option_text:   proc { |option| "#{option.formattedID}: #{option.name}"},
+    option_action: proc { |option| object.send("#{relation_field}=",option.objectID); exit}
+  }
+  menu_select(menu)
 end
 
 def menu_select(menu_hash)
