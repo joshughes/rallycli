@@ -34,6 +34,7 @@ describe 'RallyCli' do
 
     let(:test_task) { {name: "My cool task", description: "needs to do cool things!"} }
     let(:test_story_object) {rally.create_story(test_story)}
+    let(:test_story_two) { rally.create_story(test_story) }
 
     after(:all) do
       delete_all_test_tasks(rally)
@@ -47,10 +48,9 @@ describe 'RallyCli' do
 
       it 'for the current story',test_construct: true do
         rally.current_story = test_story_object
-        story2 = rally.create_story(test_story)
 
         rally.create_task(test_task, test_story_object)
-        rally.create_task(test_task, story2)
+        rally.create_task(test_task, test_story_two)
 
         expect(rally.tasks.count).to eq 1
         expect(rally.tasks([:all_stories]).count).to be > 1
@@ -78,7 +78,9 @@ describe 'RallyCli' do
         end
 
         after(:all) do
-          delete_all_test_stories(rally)
+          no_iteration_story.rally_object.delete
+          test_story_object.rally_object.delete
+          test_story_two.rally_object.delete
           iteration.delete
         end
 
@@ -87,17 +89,16 @@ describe 'RallyCli' do
   end
 
   describe 'user stories' do
+    let(:test_story_object) {rally.create_story(test_story)}
 
     after(:all) do
-      delete_all_test_stories(rally)
+      test_story_object.rally_object.delete
     end
 
-    it 'can create a new user story' do
-      expect { rally.create_story(test_story) }.to change{rally.stories.count}.by(1)
-    end
-    it 'retrieves only stories in the current iteration' do
+    it 'can create a new user story' 
 
-    end
+    it 'retrieves only stories in the current iteration'
+
     it 'retrives stories from the current project'
 
   end

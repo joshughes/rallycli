@@ -1,5 +1,6 @@
 require 'active_support'
 require 'active_support/core_ext'
+require 'httpclient/webagent-cookie'
 require 'rally_api'
 require 'yaml'
 require 'pry'
