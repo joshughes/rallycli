@@ -3,7 +3,32 @@
 require 'ostruct'
 require 'rubygems'
 require 'commander/import'
+require 'redcarpet'
+require 'rouge'
+require 'rouge/plugins/redcarpet'
 require_relative '../lib/rally/cli'
+
+class HTML < Redcarpet::Render::HTML
+  def block_code(code, language)
+    lexer = Rouge::Lexer.find_fancy(language, code) || Rouge::Lexers::PlainText
+
+    # XXX HACK: Redcarpet strips hard tabs out of code blocks,
+    # so we assume you're not using leading spaces that aren't tabs,
+    # and just replace them here.
+    if lexer.tag == 'make'
+      code.gsub! /^    /, "\t"
+    end
+
+    formatter = rouge_formatter(lexer)
+    formatter.format(lexer.lex(code))
+  end
+
+  # override this method for custom formatting behavior
+  def rouge_formatter(lexer)
+    Rouge::Formatters::HTML.new(:inline_theme =>  Rouge::Themes::Github.new, :css_class => "highlight #{lexer.tag}")
+  end
+
+end
 
 program :version, '0.0.1'
 program :description, 'Command line interface for Rally'
@@ -145,8 +170,23 @@ def edit_object(object, edit_field, options=nil)
     clazz = object.class
   end
   if(clazz::EDITABLE_TEXT_FIELDS.include?(edit_field))
+    render_options = {
+      filter_html:     true,
+      hard_wrap:       true,
+      link_attributes: { rel: 'nofollow' }
+    }
+    renderer = HTML.new(render_options)
+    extensions = {
+      autolink:           true,
+      fenced_code_blocks: true,
+      lax_spacing:        true,
+      no_intra_emphasis:  true,
+      strikethrough:      true,
+      superscript:        true
+    }
+    markdown = Redcarpet::Markdown.new(renderer, extensions)
     current_value = object.send(edit_field)
-    object.send(edit_field+"=", ask_editor(current_value || "Please create a #{edit_field}"))
+    object.send(edit_field+"=", markdown.render(ask_editor(current_value || "Please create a #{edit_field}")))
   elsif(clazz::EDITABLE_BOOLEAN_FIELDS.include?(edit_field))
     object.send(edit_field+"=",@high_line.agree("Is #{object.formattedID} #{edit_field}?"))
   elsif(clazz::EDITABLE_OBJECT_RELATIONS.include?(edit_field))

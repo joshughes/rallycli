@@ -18,6 +18,8 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'rally_api', '~> 1.2'
   spec.add_dependency 'commander'
   spec.add_dependency 'highline'
+  spec.add_dependency 'redcarpet'
+  spec.add_dependency 'rouge'
 
 
   spec.add_development_dependency "pry"
