@@ -7,6 +7,7 @@ module Rally
     EDITABLE_BOOLEAN_FIELDS = %w(ready blocked)
     EDITABLE_OBJECT_RELATIONS = %w(owner)
     EDITABLE_SELECT_FIELDS = {}
+    RULES = {}
 
     def self.save(name,task)
       unless File.directory?('.rally_cli')
@@ -52,6 +53,16 @@ module Rally
       EDITABLE_TEXT_FIELDS + EDITABLE_BOOLEAN_FIELDS + EDITABLE_OBJECT_RELATIONS + EDITABLE_SELECT_FIELDS.keys
     end
 
+    def self.define_rules(config=nil)
+      if config
+        if config.include?(:rules) && config[:rules].include?(self.rally_type)
+          config[:rules][self.rally_type].each do |rule, actions|
+            RULES[rule] = actions
+          end
+        end
+      end
+    end
+
     def self.load(file_name, rally_cli)
       file_path = ".rally_cli/#{file_name}.yaml"
       if  File.exist?(file_path)
@@ -72,16 +83,18 @@ module Rally
       rally_cli.rally_api.find(query).first.read
     end
 
-    def self.find(options, rally_cli, query = RallyAPI::RallyQuery.new)
+    def self.find(options, rally_cli, query_conditions = [])
+      query = RallyAPI::RallyQuery.new
       options ||= []
-      query_conditions = []
       rally_api = rally_cli.rally_api
       objects = []
 
+      query.type = self.rally_type.to_s
+      query.limit = 10
+
       query.project      = {"_ref" => rally_api.rally_default_project.ref } if rally_cli.config[:project]
-      if(!options.include?(:all_stories) && rally_cli.current_story )
-        query_conditions << "WorkProduct.ObjectID = #{rally_cli.current_story.objectID}"
-      elsif(!options.include?(:all_iterations))
+
+      if(!options.include?(:all_iterations))
         query_conditions << "Iteration.StartDate <= today"
         query_conditions << "Iteration.EndDate >= today"
       end
@@ -120,6 +133,7 @@ module Rally
       @formattedID    = rally_object.FormattedID
       @objectID       = rally_object.ObjectID
       define_rally_methods self.class.rally_methods(config)
+      self.class.define_rules(config)
       load(object) if object
     end
 
@@ -136,12 +150,21 @@ module Rally
       end
     end
 
-    def update_rally_object(field, value)
-      field_updates = {field => value}
-      @rally_object.update(field_updates)
+    def update_rally_object(fields)
+      @rally_object.update(fields)
       @rally_object = @rally_object.read
     end
 
+    def execute_rules(field, value, fields)
+      if RULES.include?(field.to_sym)
+        RULES[field.to_sym].each do |rule|
+          if value = rule[:is]
+            fields[rule[:then][:field].to_s.camelize] = rule[:then][:value]
+          end
+        end
+      end
+      fields
+    end
     private
 
     def define_rally_methods(methods)
@@ -151,7 +174,9 @@ module Rally
         end
 
         self.class.send :define_method, method+'=' do | arg |
-          update_rally_object(method.camelize, arg)
+          fields = {}
+          fields[method.camelize] = arg
+          update_rally_object(execute_rules(method, arg, fields))
           self.send(method)
         end
       end

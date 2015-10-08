@@ -4,13 +4,9 @@ module Rally
 
     EDITABLE_SELECT_FIELDS['expedite'] = ['Yes','No']
 
-    def self.find(filter, rally_cli, query = RallyAPI::RallyQuery.new)
-      query = RallyAPI::RallyQuery.new
-      query.type         = 'story'
-      query.query_string = "(ScheduleState != Completed)"
-      query.limit = 10
-      query.page_size = 10
-      super
+    def self.find(options, rally_cli, query_conditions = [])
+      query_conditions << "ScheduleState != Completed"
+      super(options, rally_cli, query_conditions)
     end
 
     def self.stories_for_project(rally_cli)

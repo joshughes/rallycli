@@ -155,7 +155,6 @@ def create_object(clazz, options)
   required_fields.each do |field|
     new_object = edit_object(new_object, field, options)
   end
-  binding.pry
   clazz = Object.const_get("Rally::#{new_object.clazz.capitalize}")
   new_object = clazz.create(new_object, @rally_cli.current_user, @rally_cli)
   say("A new rally #{clazz.rally_type} #{new_object.formattedID} was created!")
