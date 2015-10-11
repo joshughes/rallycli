@@ -85,8 +85,8 @@ module Rally
       Story.create(story, user, self, parent)
     end
 
-    def stories(filter=[])
-      Story.find(filter,self)
+    def stories(options=[],story_filter=[])
+      Story.find(options,self,story_filter)
     end
 
     alias_method :work_products, :stories

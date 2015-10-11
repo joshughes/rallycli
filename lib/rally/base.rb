@@ -1,9 +1,11 @@
 require 'fileutils'
 require 'ostruct'
+require 'parallel'
 module Rally
   class Base
 
     EDITABLE_TEXT_FIELDS = %w(name description blocked_reason notes)
+    MARKDOWN_TEXT_FIELDS = %W(description notes)
     EDITABLE_BOOLEAN_FIELDS = %w(ready blocked)
     EDITABLE_OBJECT_RELATIONS = %w(owner)
     EDITABLE_SELECT_FIELDS = {}
@@ -92,7 +94,7 @@ module Rally
       query.type = self.rally_type.to_s
       query.limit = 10
 
-      query.project      = {"_ref" => rally_api.rally_default_project.ref } if rally_cli.config[:project]
+      query.project = {"_ref" => rally_api.rally_default_project.ref } if rally_cli.config[:project]
 
       if(!options.include?(:all_iterations))
         query_conditions << "Iteration.StartDate <= today"
@@ -103,7 +105,7 @@ module Rally
       end
       query.query_string = self.build_query(query_conditions)
       results = rally_api.find(query)
-      results.each do |result|
+      Parallel.each(results, in_threads: 4) do | result |
         objects << self.new(result.read)
       end
       objects

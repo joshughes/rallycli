@@ -6,7 +6,9 @@ require 'commander/import'
 require 'redcarpet'
 require 'rouge'
 require 'rouge/plugins/redcarpet'
+require 'terminal-table'
 require_relative '../lib/rally/cli'
+require_relative '../lib/helpers/command_line'
 
 class HTML < Redcarpet::Render::HTML
   def block_code(code, language)
@@ -30,10 +32,12 @@ class HTML < Redcarpet::Render::HTML
 
 end
 
+
 program :version, '0.0.1'
 program :description, 'Command line interface for Rally'
 
 @rally_cli = Rally::Cli.new
+@command_line_helper = Rally::CommandLine
 #@task = @rally_cli.current_task
 @high_line = HighLine.new
 
@@ -44,31 +48,49 @@ command :current_task do |c|
   c.example 'description', 'command example'
   c.option '--some-switch', 'Some switch that does something'
   c.action do |args, options|
-    say("#{@task.formattedID}: #{@task.name} - #{@task.description}")
+    say("#{@rally_cli.current_task.formattedID}: #{@rally_cli.current_task.name}")
   end
 end
 
-command :start_work do |c|
-  c.syntax = 'rally_cli start_work [options]'
+command :current_story do |c|
+  c.syntax = 'rally_cli current_story [options]'
   c.summary = ''
   c.description = ''
   c.example 'description', 'command example'
   c.option '--some-switch', 'Some switch that does something'
   c.action do |args, options|
-    @task.start
-    say("Work started on #{@task.formattedID}")
+    say("#{@rally_cli.current_story.formattedID}: #{@rally_cli.current_story.name}")
   end
 end
 
-command :end_work do |c|
-  c.syntax = 'rally_cli end_work [options]'
+command :show_stories do |c|
+  c.syntax = 'rally_cli show_stories [options]'
   c.summary = ''
   c.description = ''
   c.example 'description', 'command example'
-  c.option '--some-switch', 'Some switch that does something'
+  @rally_cli.config[:show][:story][:options].each do | show_option, show_option_filter |
+    c.option "--#{show_option}", "Only show stories where #{show_option_filter}"
+  end
   c.action do |args, options|
-    @task.end
-    say("Work ended with #{@task.work_hours} hours logged this session and a total of #{@task.actuals} hours logged for task #{@task.formattedID}")
+    story_filter = []
+    display = @rally_cli.config[:show][:story][:display]
+    options.__hash__.keys.each do | option |
+      story_filter << @rally_cli.config[:show][:story][:options][option.to_sym]
+    end
+
+    stories = @rally_cli.stories([:all_iterations],story_filter)
+    table = Terminal::Table.new do |t|
+      stories.each do | story |
+        row = []
+        display.each do | attribute |
+          row << story.rally_object.send(attribute.to_s.camelize.sub('Id','ID'))
+        end
+        t.add_row row
+        t.add_separator
+        t.headings = display
+      end
+    end
+    puts table
   end
 end
 
@@ -118,9 +140,19 @@ command :create_story do |c|
   c.syntax = 'rally_cli create_story'
   c.description = 'Create a new story for your project'
   c.example 'description', 'command example'
-  c.option '--some-switch', 'Some switch that does something'
+  @command_line_helper.set_command_options('Story', c, @rally_cli.config)
   c.action do |args, options|
-    create_object('Story', args[0])
+    create_object('Story', options)
+  end
+end
+
+command :create_task do |c|
+  c.syntax = 'rally_cli create_story'
+  c.description = 'Create a new task for a story'
+  c.example 'description', 'command example'
+  @command_line_helper.set_command_options('Task', c, @rally_cli.config)
+  c.action do |args, options|
+    create_object('Task', options)
   end
 end
 
@@ -148,10 +180,14 @@ end
 
 private
 
+
 def create_object(clazz, options)
-  new_object = OpenStruct.new
+  passed_options = options.__hash__.keys.map { |x| x.to_s }
+  new_object = OpenStruct.new(options.__hash__)
   new_object.clazz = clazz
   required_fields = @rally_cli.config[:creation][clazz.downcase.to_sym][:required]
+  binding.pry
+  required_fields = required_fields - passed_options
   required_fields.each do |field|
     new_object = edit_object(new_object, field, options)
   end
@@ -185,7 +221,9 @@ def edit_object(object, edit_field, options=nil)
     }
     markdown = Redcarpet::Markdown.new(renderer, extensions)
     current_value = object.send(edit_field)
-    object.send(edit_field+"=", markdown.render(ask_editor(current_value || "Please create a #{edit_field}")))
+    user_input = ask_editor(current_value || "Please create a #{edit_field}")
+    user_input = markdown.render(user_input) if clazz::MARKDOWN_TEXT_FIELDS.include?(edit_field)
+    object.send(edit_field+"=", user_input)
   elsif(clazz::EDITABLE_BOOLEAN_FIELDS.include?(edit_field))
     object.send(edit_field+"=",@high_line.agree("Is #{object.formattedID} #{edit_field}?"))
   elsif(clazz::EDITABLE_OBJECT_RELATIONS.include?(edit_field))
