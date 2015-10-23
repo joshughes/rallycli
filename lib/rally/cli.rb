@@ -9,6 +9,7 @@ require_relative 'story'
 
 module Rally
   class Cli
+
     def initialize(options = {})
       options.reverse_merge!(
         username:  ENV['RALLY_USERNAME'],

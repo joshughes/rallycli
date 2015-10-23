@@ -157,16 +157,11 @@ module Rally
       @objectID    = object.objectID
     end
 
-    def update_rally_object(fields)
-      @rally_object.update(fields)
-      @rally_object = @rally_object.read
-    end
-
     def execute_rules(fields)
       rules_output = {}
       fields.each do |field, value|
-        next unless RULES.include?(field.to_sym)
-        RULES[field.to_sym].each do |rule|
+        next unless RULES.include?(field.underscore.to_sym)
+        RULES[field.underscore.to_sym].each do |rule|
           next unless value == rule[:is]
           rules_output[rule[:then][:field].to_s.camelize] = rule[:then][:value]
         end
@@ -185,7 +180,7 @@ module Rally
         self.class.send :define_method, method + '=' do |arg|
           fields = {}
           fields[method.camelize] = arg
-          update_rally_object(fields)
+          update(fields)
           send(method)
         end
       end
