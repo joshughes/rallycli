@@ -5,7 +5,7 @@ module Rally
     EDITABLE_OBJECT_RELATIONS.concat %w(work_product)
 
     def self.find(options, rally_cli, query_conditions = [])
-      if(!options.include?(:all_stories) && rally_cli.current_story)
+      if !options.include?(:all_stories) && rally_cli.current_story
         query_conditions << "WorkProduct.ObjectID = #{rally_cli.current_story.objectID}"
       end
       super(options, rally_cli, query_conditions)
@@ -37,14 +37,13 @@ module Rally
     private
 
     def update_actuals
-      if self.actuals
-        self.actuals = self.actuals + @work_hours
+      if actuals
+        self.actuals = actuals + @work_hours
       else
         self.actuals = @work_hours
       end
       @start_time = nil
       @work_hours = nil
     end
-
   end
 end

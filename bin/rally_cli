@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 
 require 'ostruct'
+require 'colorize'
 require 'rubygems'
 require 'commander/import'
 require 'redcarpet'
@@ -17,9 +18,8 @@ class HTML < Redcarpet::Render::HTML
     # XXX HACK: Redcarpet strips hard tabs out of code blocks,
     # so we assume you're not using leading spaces that aren't tabs,
     # and just replace them here.
-    if lexer.tag == 'make'
-      code.gsub! /^    /, "\t"
-    end
+
+    code.gsub! /^    /, "\t" if lexer.tag == 'make'
 
     formatter = rouge_formatter(lexer)
     formatter.format(lexer.lex(code))
@@ -27,18 +27,15 @@ class HTML < Redcarpet::Render::HTML
 
   # override this method for custom formatting behavior
   def rouge_formatter(lexer)
-    Rouge::Formatters::HTML.new(:inline_theme =>  Rouge::Themes::Github.new, :css_class => "highlight #{lexer.tag}")
+    Rouge::Formatters::HTML.new(inline_theme: Rouge::Themes::Github.new, css_class: "highlight #{lexer.tag}")
   end
-
 end
-
 
 program :version, '0.0.1'
 program :description, 'Command line interface for Rally'
 
 @rally_cli = Rally::Cli.new
 @command_line_helper = Rally::CommandLine
-#@task = @rally_cli.current_task
 @high_line = HighLine.new
 
 command :current_task do |c|
@@ -47,7 +44,7 @@ command :current_task do |c|
   c.description = ''
   c.example 'description', 'command example'
   c.option '--some-switch', 'Some switch that does something'
-  c.action do |args, options|
+  c.action do
     say("#{@rally_cli.current_task.formattedID}: #{@rally_cli.current_task.name}")
   end
 end
@@ -58,7 +55,7 @@ command :current_story do |c|
   c.description = ''
   c.example 'description', 'command example'
   c.option '--some-switch', 'Some switch that does something'
-  c.action do |args, options|
+  c.action do
     say("#{@rally_cli.current_story.formattedID}: #{@rally_cli.current_story.name}")
   end
 end
@@ -68,22 +65,22 @@ command :show_stories do |c|
   c.summary = ''
   c.description = ''
   c.example 'description', 'command example'
-  @rally_cli.config[:show][:story][:options].each do | show_option, show_option_filter |
+  @rally_cli.config[:show][:story][:options].each do |show_option, show_option_filter|
     c.option "--#{show_option}", "Only show stories where #{show_option_filter}"
   end
-  c.action do |args, options|
+  c.action do |_args, options|
     story_filter = []
     display = @rally_cli.config[:show][:story][:display]
-    options.__hash__.keys.each do | option |
+    options.__hash__.keys.each do |option|
       story_filter << @rally_cli.config[:show][:story][:options][option.to_sym]
     end
 
-    stories = @rally_cli.stories([:all_iterations],story_filter)
+    stories = @rally_cli.stories([:all_iterations], story_filter)
     table = Terminal::Table.new do |t|
-      stories.each do | story |
+      stories.each do |story|
         row = []
-        display.each do | attribute |
-          row << story.rally_object.send(attribute.to_s.camelize.sub('Id','ID'))
+        display.each do |attribute|
+          row << story.rally_object.send(attribute.to_s.camelize.sub('Id', 'ID'))
         end
         t.add_row row
         t.add_separator
@@ -99,7 +96,7 @@ command :work_progress do |c|
   c.description = 'Display the hours spent on the current_task'
   c.example 'description', 'command example'
   c.option '--some-switch', 'Some switch that does something'
-  c.action do |args, options|
+  c.action do
     say("You have spent #{@task.progress} hours working on task #{@task.formattedID}")
   end
 end
@@ -109,11 +106,11 @@ command :set_task do |c|
   c.description = 'Display tasks for the user to select a task to work on'
   c.example 'description', 'command example'
   c.option '--some-switch', 'Some switch that does something'
-  c.action do |args, options|
+  c.action do |_args, options|
     menu = {
       options:       @rally_cli.tasks(options),
-      prompt:        "Please choose the task you wish to work on.",
-      option_text:   proc { |option| "#{option.formattedID}: #{option.description}"},
+      prompt:        'Please choose the task you wish to work on.',
+      option_text:   proc { |option| "#{option.formattedID}: #{option.description}" },
       option_action: proc { |option| @rally_cli.current_task = option; exit }
     }
     menu_select(menu)
@@ -126,13 +123,21 @@ command :set_story do |c|
   c.example 'description', 'command example'
   c.option '--some-switch', 'Some switch that does something'
   c.action do |args, options|
-    menu = {
-      options:       @rally_cli.stories(options),
-      prompt:        "Please choose the story you wish to work on.",
-      option_text:   proc { |option| "#{option.formattedID}: #{option.description}"},
-      option_action: proc { |option| @rally_cli.current_story = option; exit}
-    }
-    menu_select(menu)
+    if @command_line_helper.story?(args[0])
+      @rally_cli.current_story = Rally::Story.new(
+        Rally::Story.find_by_formattedID(args[0], @rally_cli),
+        @rally_cli.config
+      )
+      say("Current story set to #{@rally_cli.current_story.formattedID.green}")
+    else
+      menu = {
+        options:       @rally_cli.stories(options),
+        prompt:        'Please choose the story you wish to work on.',
+        option_text:   proc { |option| "#{option.formattedID}: #{option.description}" },
+        option_action: proc { |option| @rally_cli.current_story = option; say("Current story set to #{@rally_cli.current_story.formattedID.green}"); exit }
+      }
+      menu_select(menu)
+    end
   end
 end
 
@@ -141,7 +146,7 @@ command :create_story do |c|
   c.description = 'Create a new story for your project'
   c.example 'description', 'command example'
   @command_line_helper.set_command_options('Story', c, @rally_cli.config)
-  c.action do |args, options|
+  c.action do |_args, options|
     create_object('Story', options)
   end
 end
@@ -151,7 +156,7 @@ command :create_task do |c|
   c.description = 'Create a new task for a story'
   c.example 'description', 'command example'
   @command_line_helper.set_command_options('Task', c, @rally_cli.config)
-  c.action do |args, options|
+  c.action do |_args, options|
     create_object('Task', options)
   end
 end
@@ -160,9 +165,9 @@ command :edit_task do |c|
   c.syntax = 'rally_cli edit_task [options]'
   c.description = 'Edit a feild of the current task'
   c.example 'description', 'command example'
-  c.option '--some-switch', 'Some switch that does something'
+  @command_line_helper.set_command_options('Task', c, @rally_cli.config)
   c.action do |args, options|
-    edit_object(@rally_cli.current_task, args[0])
+    edit_object(@rally_cli.current_task, args[0] || '', options)
   end
 end
 
@@ -171,40 +176,47 @@ command :edit_story do |c|
   c.summary = ''
   c.description = ''
   c.example 'description', 'command example'
-  c.option '--some-switch', 'Some switch that does something'
+  @command_line_helper.set_command_options('Story', c, @rally_cli.config)
   c.action do |args, options|
-    edit_object(@rally_cli.current_story, args[0])
+    if @command_line_helper.story?(args[0])
+      edit_story = @command_line_helper.get_story(args[0], @rally_cli)
+      edit_object(edit_story, args[1] || '', options)
+    else
+      edit_object(@rally_cli.current_story, args[0] || '', options)
+    end
   end
 end
-
 
 private
 
-
 def create_object(clazz, options)
-  passed_options = options.__hash__.keys.map { |x| x.to_s }
+  passed_options = options.__hash__.keys.map(&:to_s)
   new_object = OpenStruct.new(options.__hash__)
   new_object.clazz = clazz
-  required_fields = @rally_cli.config[:creation][clazz.downcase.to_sym][:required]
-  binding.pry
-  required_fields = required_fields - passed_options
+  required_fields = @rally_cli.config[:creation][clazz.downcase.to_sym][:required] || []
+  required_fields -= passed_options
   required_fields.each do |field|
-    new_object = edit_object(new_object, field, options)
+    new_object = edit_object(new_object, field)
   end
   clazz = Object.const_get("Rally::#{new_object.clazz.capitalize}")
   new_object = clazz.create(new_object, @rally_cli.current_user, @rally_cli)
-  say("A new rally #{clazz.rally_type} #{new_object.formattedID} was created!")
+  say("A new rally #{clazz.rally_type} #{new_object.formattedID.green} was created!")
 end
 
-
-def edit_object(object, edit_field, options=nil)
+def object_class(object)
   if object.instance_of? OpenStruct
     clazz = Object.const_get("Rally::#{object.clazz.capitalize}")
     clazz.rally_methods(@rally_cli.config)
+    clazz
   else
-    clazz = object.class
+    object.class
   end
-  if(clazz::EDITABLE_TEXT_FIELDS.include?(edit_field))
+end
+
+def edit_object(object, edit_field, options = nil)
+  clazz = object_class(object)
+
+  if clazz::EDITABLE_TEXT_FIELDS.include?(edit_field)
     render_options = {
       filter_html:     true,
       hard_wrap:       true,
@@ -223,35 +235,35 @@ def edit_object(object, edit_field, options=nil)
     current_value = object.send(edit_field)
     user_input = ask_editor(current_value || "Please create a #{edit_field}")
     user_input = markdown.render(user_input) if clazz::MARKDOWN_TEXT_FIELDS.include?(edit_field)
-    object.send(edit_field+"=", user_input)
-  elsif(clazz::EDITABLE_BOOLEAN_FIELDS.include?(edit_field))
-    object.send(edit_field+"=",@high_line.agree("Is #{object.formattedID} #{edit_field}?"))
-  elsif(clazz::EDITABLE_OBJECT_RELATIONS.include?(edit_field))
-    select_relation(object, edit_field, options)
-  elsif(clazz::EDITABLE_SELECT_FIELDS.has_key?(edit_field.to_s))
-    select_fields(object, edit_field, clazz::EDITABLE_SELECT_FIELDS[edit_field.to_s], options)
-  else
-    say("#{edit_field.capitalize} is not editable for #{object.class} #{object.formattedID}")
+    object.send(edit_field + '=', user_input)
+  elsif clazz::EDITABLE_BOOLEAN_FIELDS.include?(edit_field)
+    object.send(edit_field + '=', @high_line.agree("Is #{object.formattedID} #{edit_field}?"))
+  elsif clazz::EDITABLE_OBJECT_RELATIONS.include?(edit_field)
+    select_relation(object, edit_field)
+  elsif clazz::EDITABLE_SELECT_FIELDS.key?(edit_field.to_s)
+    select_fields(object, edit_field, clazz::EDITABLE_SELECT_FIELDS[edit_field.to_s])
   end
-  return object
+
+  object.update(options.__hash__) if options
+  object
 end
 
-def select_fields(object, edit_field, select_options, options=nil)
-  menu={
+def select_fields(object, edit_field, select_options)
+  menu = {
     options: select_options,
     prompt:  "Please select the value to set for #{edit_field}",
-    option_text:   proc { |option| "#{option}"},
+    option_text:   proc { |option| "#{option}" },
     option_action: proc { |option| object.send("#{edit_field}=", option) }
   }
   menu_select(menu)
 end
 
-def select_relation(object, relation_field, options=nil)
-  menu ={
-    options:       @rally_cli.send("#{relation_field.pluralize}",options),
+def select_relation(object, relation_field, options = nil)
+  menu = {
+    options:       @rally_cli.send("#{relation_field.pluralize}", options),
     prompt:        "Please choose the new #{relation_field} for #{object.class} #{object.formattedID}",
-    option_text:   proc { |option| "#{option.formattedID}: #{option.name}"},
-    option_action: proc { |option| object.send("#{relation_field}=",option.objectID)}
+    option_text:   proc { |option| "#{option.formattedID}: #{option.name}" },
+    option_action: proc { |option| object.send("#{relation_field}=", option.objectID) }
   }
   menu_select(menu)
 end
@@ -259,8 +271,8 @@ end
 def menu_select(menu_hash)
   groups = menu_hash[:options].each_slice(10).to_a
   groups.cycle do |options|
-    system("clear")
-    @high_line.choose do | menu |
+    system('clear')
+    @high_line.choose do |menu|
       menu.prompt = menu_hash[:prompt]
       menu.prompt += "\n next: for next 10 results" if groups.length > 1
       menu.prompt += "\n quit: to exit"
@@ -272,8 +284,8 @@ def menu_select(menu_hash)
           return nil
         end
       end
-      menu.hidden(:next, "Next page") { next }
-      menu.hidden(:quit, "Exit program.") { exit }
+      menu.hidden(:next, 'Next page') { next }
+      menu.hidden(:quit, 'Exit program.') { exit }
     end
   end
 end
